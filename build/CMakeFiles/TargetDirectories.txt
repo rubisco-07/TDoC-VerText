@@ -1,0 +1,8 @@
+/home/cazz/VerText/build/CMakeFiles/vfs_mount.dir
+/home/cazz/VerText/build/CMakeFiles/vfs_tui.dir
+/home/cazz/VerText/build/CMakeFiles/edit_cache.dir
+/home/cazz/VerText/build/CMakeFiles/rebuild_cache.dir
+/home/cazz/VerText/build/CMakeFiles/list_install_components.dir
+/home/cazz/VerText/build/CMakeFiles/install.dir
+/home/cazz/VerText/build/CMakeFiles/install/local.dir
+/home/cazz/VerText/build/CMakeFiles/install/strip.dir
