@@ -78,7 +78,7 @@ void TUIManager::draw_header() {
     mvwprintw(header_win, 0, 2, "VFS Manager");
     wattroff(header_win, COLOR_PAIR(1) | A_BOLD);
     wattron(header_win, COLOR_PAIR(6));
-    mvwprintw(header_win, 0, getmaxx(header_win) - 35, "Q:Quit H:Help TAB:Switch ↑↓:Nav");
+    mvwprintw(header_win, 0, getmaxx(header_win) - 45, "Q:Quit D:Delete H:Help TAB:Switch ↑↓:Nav");
     wattroff(header_win, COLOR_PAIR(6));
     wnoutrefresh(header_win);
 }
@@ -86,7 +86,7 @@ void TUIManager::draw_header() {
 void TUIManager::draw_files() {
     werase(files_win);
     int max_y = getmaxy(files_win), max_x = getmaxx(files_win);
-    
+
     if (current_view == FILES_VIEW) {
         wattron(files_win, COLOR_PAIR(4) | A_BOLD);
         mvwprintw(files_win, 0, 1, "FILES (%zu)", files.size());
@@ -97,22 +97,22 @@ void TUIManager::draw_files() {
         wattroff(files_win, COLOR_PAIR(6));
     }
     mvwhline(files_win, 1, 0, ACS_HLINE, max_x);
-    
+
     if (files.empty()) {
         mvwprintw(files_win, max_y/2, (max_x-12)/2, "No files");
         wnoutrefresh(files_win);
         return;
     }
-    
+
     for (size_t i = 0; i < files.size() && (int)i < max_y - 2; i++) {
         bool sel = ((int)i == selected_file_idx && current_view == FILES_VIEW);
         if (sel) wattron(files_win, COLOR_PAIR(2) | A_BOLD);
-        
+
         string name = files[i];
         if (name.length() > (size_t)(max_x - 10)) name = name.substr(0, max_x - 13) + "...";
         int ver = VersionManager::get_version_count(backend_root + "/" + files[i]);
         mvwprintw(files_win, i + 2, 1, "%c %-*s v%d", sel ? '>' : ' ', max_x - 8, name.c_str(), ver);
-        
+
         if (sel) wattroff(files_win, COLOR_PAIR(2) | A_BOLD);
     }
     wnoutrefresh(files_win);
@@ -121,7 +121,7 @@ void TUIManager::draw_files() {
 void TUIManager::draw_versions() {
     werase(versions_win);
     int max_y = getmaxy(versions_win), max_x = getmaxx(versions_win);
-    
+
     if (current_view == VERSIONS_VIEW) {
         wattron(versions_win, COLOR_PAIR(4) | A_BOLD);
         mvwprintw(versions_win, 0, 1, "VERSIONS");
@@ -131,32 +131,32 @@ void TUIManager::draw_versions() {
         mvwprintw(versions_win, 0, 1, "VERSIONS");
         wattroff(versions_win, COLOR_PAIR(6));
     }
-    
+
     if (!current_file.empty()) {
         wattron(versions_win, COLOR_PAIR(6));
-        string fn = current_file.length() > (size_t)(max_x - 3) ? 
+        string fn = current_file.length() > (size_t)(max_x - 3) ?
             current_file.substr(0, max_x - 6) + "..." : current_file;
         mvwprintw(versions_win, 0, max_x - fn.length() - 2, "%s", fn.c_str());
         wattroff(versions_win, COLOR_PAIR(6));
     }
     mvwhline(versions_win, 1, 0, ACS_HLINE, max_x);
-    
+
     if (versions.empty()) {
         mvwprintw(versions_win, max_y/2, (max_x-14)/2, "No versions");
         wnoutrefresh(versions_win);
         return;
     }
-    
+
     for (size_t i = 0; i < versions.size() && (int)i < max_y - 2; i++) {
         bool sel = ((int)i == selected_version_idx && current_view == VERSIONS_VIEW);
         if (sel) wattron(versions_win, COLOR_PAIR(2) | A_BOLD);
-        
+
         char time_str[20];
         strftime(time_str, sizeof(time_str), "%m/%d %H:%M", localtime(&versions[i].timestamp));
-        mvwprintw(versions_win, i + 2, 1, "%c v%-2d %s %6s", 
-            sel ? '>' : ' ', versions[i].version_number, time_str, 
+        mvwprintw(versions_win, i + 2, 1, "%c v%-2d %s %6s",
+            sel ? '>' : ' ', versions[i].version_number, time_str,
             format_size(versions[i].size).c_str());
-        
+
         if (sel) wattroff(versions_win, COLOR_PAIR(2) | A_BOLD);
     }
     wnoutrefresh(versions_win);
@@ -210,7 +210,7 @@ void TUIManager::restore_version() {
 }
 
 void TUIManager::draw_help_popup() {
-    int h = 11, w = 40;
+    int h = 12, w = 40;
     WINDOW* help = newwin(h, w, (LINES - h) / 2, (COLS - w) / 2);
     box(help, 0, 0);
     wattron(help, COLOR_PAIR(1) | A_BOLD);
@@ -219,6 +219,7 @@ void TUIManager::draw_help_popup() {
     mvwprintw(help, 2, 2, "↑/↓      Navigate");
     mvwprintw(help, 3, 2, "TAB      Switch panel");
     mvwprintw(help, 4, 2, "ENTER    Select file");
+    mvwprintw(help, 5, 2, "D        Delete file");
     mvwprintw(help, 5, 2, "R        Restore version");
     mvwprintw(help, 6, 2, "V        View content");
     mvwprintw(help, 7, 2, "Q        Quit");
@@ -261,6 +262,7 @@ void TUIManager::handle_files_input(int ch) {
     else if (ch == KEY_DOWN && selected_file_idx < (int)files.size() - 1) selected_file_idx++;
     else if (ch == '\n' || ch == KEY_ENTER) select_file();
     else if (ch == '\t' && !versions.empty()) current_view = VERSIONS_VIEW;
+    else if (ch == 'd' || ch == 'D') delete_file_with_versions();
 }
 
 void TUIManager::handle_versions_input(int ch) {
@@ -299,3 +301,62 @@ void TUIManager::run() {
 }
 
 void TUIManager::draw_details() {}
+
+void TUIManager::delete_file_with_versions() {
+    if (files.empty() || selected_file_idx >= (int)files.size()) return;
+
+    string filename = files[selected_file_idx];
+    string fullpath = backend_root + "/" + filename;
+    int version_count = VersionManager::get_version_count(fullpath);
+    int h = 9, w = 60;
+    WINDOW* confirm = newwin(h, w, (LINES - h) / 2, (COLS - w) / 2);
+    box(confirm, 0, 0);
+    wattron(confirm, COLOR_PAIR(5) | A_BOLD);
+    mvwprintw(confirm, 1, 2, "DELETE FILE");
+    wattroff(confirm, COLOR_PAIR(5) | A_BOLD);
+    string display_name = filename;
+    if (display_name.length() > 50) {
+        display_name = display_name.substr(0, 47) + "...";
+    }
+
+    mvwprintw(confirm, 3, 2, "File: %s", display_name.c_str());
+    mvwprintw(confirm, 4, 2, "Versions: %d", version_count);
+
+    wattron(confirm, COLOR_PAIR(5));
+    mvwprintw(confirm, 5, 2, "This will delete ALL versions permanently!");
+    wattroff(confirm, COLOR_PAIR(5));
+
+    wattron(confirm, COLOR_PAIR(4));
+    mvwprintw(confirm, 7, 2, "Press Y to confirm, any other key to cancel");
+    wattroff(confirm, COLOR_PAIR(4));
+
+    wrefresh(confirm);
+    nodelay(stdscr, FALSE);
+    int ch = getch();
+    nodelay(stdscr, TRUE);
+
+    delwin(confirm);
+
+    if (ch == 'y' || ch == 'Y') {
+        VersionManager::delete_all_versions(fullpath);
+        if (remove(fullpath.c_str()) == 0) {
+            last_status_message = "✓ File and " + to_string(version_count) + " versions deleted";
+            if (current_file == filename) {
+                current_file.clear();
+                versions.clear();
+            }
+            load_files();
+            if (selected_file_idx >= (int)files.size() && selected_file_idx > 0) {
+                selected_file_idx--;
+            }
+            if (!files.empty() && selected_file_idx < (int)files.size()) {
+                current_file = files[selected_file_idx];
+                load_versions_for_file(current_file);
+            }
+        } else {
+            last_status_message = "✗ Failed to delete file";
+        }
+    } else {
+        last_status_message = "Deletion cancelled";
+    }
+}

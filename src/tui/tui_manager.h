@@ -65,6 +65,7 @@ private:
     void select_file();
     void restore_version();
     void view_version_content();
+    void delete_file_with_versions();
     
     // Helpers
     string format_timestamp(time_t timestamp);

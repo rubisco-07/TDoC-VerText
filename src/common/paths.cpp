@@ -19,7 +19,7 @@ static string get_backend_root() {
         backend_root_cached = string(env_root);
     } else {
         // Fall back to current working directory + runtime/data
-        char cwd[PATH_MAX]; 
+        char cwd[PATH_MAX];
         if (getcwd(cwd, sizeof(cwd)) != nullptr) {
             backend_root_cached = string(cwd) + "/runtime/data";
         } else {

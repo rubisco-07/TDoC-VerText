@@ -37,6 +37,15 @@ brew install --cask macfuse
 3. Follow the **Linux** instructions above inside the WSL terminal.
 
 ---
+## Additional Instructions
+
+1. **Add json.hpp to the VerText/src/fuse**
+   ```bash
+   cd VerText/src/fuse
+   wget https://raw.githubusercontent.com/nlohmann/json/develop/single_include/nlohmann/json.hpp
+   # json.hpp is a stand alone file
+   ```
+
 
 ## Build Instructions
 
